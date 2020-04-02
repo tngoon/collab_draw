@@ -1,0 +1,62 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+#required libraries
+library(ggplot2)
+library(car)
+library(dplyr)
+library(lme4)
+library(nlme)
+library(reshape2)
+library(pwr)
+```
+```{r}
+data <- read.table("order_study_data.csv", sep=",", header=TRUE)
+head(data)
+```
+
+```{r}
+data <- group_by(data, condition)
+aggregate <- summarise(data,
+                         #mean ratings
+                          avg_total_orig = mean(total_orig),
+                          sd_total_orig = sd(total_orig),
+                          se_total_orig = sd_total_orig/sqrt(length(condition)),
+                          avg_total_util = mean(total_util),
+                          sd_total_util = sd(total_util),
+                          se_total_util = sd_total_util/sqrt(length(condition)),
+                          avg_orig_perc = mean(percentile_orig),
+                          sd_orig_perc = sd(percentile_orig),
+                          se_orig_perc = sd_orig_perc/sqrt(length(condition)),
+                          avg_util_perc = mean(percentile_util),
+                          sd_util_perc = sd(percentile_util),
+                          se_util_perc = sd_util_perc/sqrt(length(condition)))
+
+aggregate
+```
+```{r}
+time <- summarise(data,
+                  orig_t1 = mean(avg_orig1),
+                  sd_orig_t1 = sd(avg_orig1),
+                  se_orig_t1 = sd_orig_t1/sqrt(length(condition)),
+                  util_t1 = mean(avg_util1),
+                  sd_util_t1 = sd(avg_util1),
+                  se_util_t1 = sd_util_t1/sqrt(length(condition)),
+                  orig_t2 = mean(avg_orig2),
+                  sd_orig_t2 = sd(avg_orig2),
+                  se_orig_t2 = sd_orig_t2/sqrt(length(condition)),
+                  util_t2 = mean(avg_util2),
+                  sd_util_t2 = sd(avg_util2),
+                  se_util_t2 = sd_util_t1/sqrt(length(condition)))
+
+time
+```
+
+```{r}
+qqPlot(data$total_util)
+shapiro.test(data$total_orig)
+```
+
