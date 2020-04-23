@@ -12,10 +12,9 @@ Analysis plan
 - Rater 2 utility rating t2
 
 ***Analysis***
-- Calculate IRR of raters
 - Average of orig and util ratings both t1 & t2 
 - Average of orig and util ratings between Rater 1 & Rater 2
 - Percentile rank of combined totals
-- T-test between subjects for t1 & t2
+- Ordinal regression? between subjects for t1 & t2
 - Repeated measures t-test for ratings between t1 & t2
 

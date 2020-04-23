@@ -1,0 +1,118 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+#required libraries
+library(ggplot2)
+library(car)
+library(dplyr)
+library(reshape2)
+library(pwr)
+library(irr)
+library(coin)
+```
+```{r}
+data <- read.table("order_study_data.csv", sep=",", header=TRUE)
+head(data)
+```
+
+```{r}
+data <- group_by(data, condition)
+aggregate <- summarise(data,
+                         #mean ratings
+                       med_total_orig = median(sum_orig),   
+                       avg_total_orig = mean(sum_orig),
+                          sd_total_orig = sd(sum_orig),
+                          se_total_orig = sd_total_orig/sqrt(length(condition)),
+                      med_avg_orig = median(sum_orig),   
+                       avg_orig = mean(orig),
+                          sd_avg_orig = sd(orig),
+                          se_avg_orig = sd_avg_orig/sqrt(length(condition)),
+                       med_total_util = median(sum_util),
+                          avg_total_util = mean(sum_util),
+                          sd_total_util = sd(sum_util),
+                          se_total_util = sd_total_util/sqrt(length(condition)),
+                       med_avg_util = median(util),   
+                       avg_util = mean(util),
+                          sd_avg_util = sd(util),
+                          se_avg_util = sd_avg_util/sqrt(length(condition)))
+
+aggregate
+```
+```{r}
+time <- summarise(data,
+                  med_orig_t1 = median(orig_t1),
+                  avg_orig_t1 = mean(orig_t1),
+                  sd_orig_t1 = sd(orig_t1),
+                  se_orig_t1 = sd_orig_t1/sqrt(length(condition)),
+                  med_util_t1 = median(util_t1),
+                  avg_util_t1 = mean(util_t1),
+                  sd_util_t1 = sd(util_t1),
+                  se_util_t1 = sd_util_t1/sqrt(length(condition)),
+                  med_orig_t2 = median(orig_t2),
+                  avg_orig_t2 = mean(orig_t2),
+                  sd_orig_t2 = sd(orig_t2),
+                  se_orig_t2 = sd_orig_t2/sqrt(length(condition)),
+                  med_util_t2 = median(util_t2),
+                  avg_util_t2 = mean(util_t2),
+                  sd_util_t2 = sd(util_t2),
+                  se_util_t2 = sd_util_t2/sqrt(length(condition)))
+
+time
+```
+
+```{r}
+#load in rater data for irr calculation
+irr_orig <- read.table("irr_orig.csv", sep=",", header=TRUE)
+irr_orig <- as.matrix(irr_orig)
+irr_util <- read.table("irr_util.csv", sep=",", header=TRUE)
+irr_util <- as.matrix(irr_util)
+
+kappa2(irr_orig,"equal")
+kappa2(irr_util,"equal")
+```
+```{r}
+#comparing the sum totals for originality and utility across t1 and t2
+orig <- wilcox.test(data$sum_orig~data$condition)
+orig
+
+util <- wilcox.test(data$sum_util~data$condition)
+util
+```
+
+```{r}
+#randomization test comparing sum originality and sum utility across t1 and t2
+independence_test(condition ~ sum_orig, data = data)
+independence_test(condition ~ sum_util, data = data)
+```
+
+```{r}
+#comparing t2 orig and util
+t2_orig <- wilcox.test(data$orig_t2~data$condition)
+t2_orig
+
+t2_util <- wilcox.test(data$util_t2~data$condition)
+t2_util
+```
+```{r}
+#randomization test for t2 orig and util
+independence_test(condition ~ orig_t2, data = data)
+independence_test(condition ~ util_t2, data = data)
+```
+
+```{r}
+#comparing t1 orig and util
+t1_orig <- wilcox.test(data$orig_t1~data$condition)
+t1_orig
+
+t1_util <- wilcox.test(data$util_t1~data$condition)
+t1_util
+```
+```{r}
+#randomization test for t2 orig and util
+independence_test(condition ~ orig_t1, data = data)
+independence_test(condition ~ util_t1, data = data)
+```
+

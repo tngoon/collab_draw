@@ -1,0 +1,66 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+#required libraries
+library(ggplot2)
+library(car)
+library(dplyr)
+library(reshape2)
+library(pwr)
+library(irr)
+library(coin)
+```
+```{r}
+baseline <- read.table("baseline_data.csv", sep=",", header=TRUE)
+head(baseline)
+```
+```{r}
+baseline <- group_by(baseline, condition)
+baseline_summary <- summarise(baseline,
+                              orig = mean(final_orig),
+                              sd_orig = sd(final_orig),
+                              se_orig = sd_orig/sqrt(length(condition)),
+                              util = mean(final_prac),
+                              sd_util = sd(final_prac),
+                              se_util = sd_util/sqrt(length(condition)))
+
+baseline_summary
+```
+```{r}
+#inter-rater reliability
+irr <- read.table("irr.csv", sep=",", header=TRUE)
+irr <- as.matrix(irr)
+
+kappa2(irr,"equal")
+```
+```{r}
+#wilcoxon rank tests
+orig <- wilcox.test(baseline$final_orig~baseline$condition)
+util <- wilcox.test(baseline$final_prac~baseline$condition)
+
+orig
+util
+```
+
+```{r}
+#randomization tests
+independence_test(condition ~ final_orig, data = baseline)
+independence_test(condition ~ final_prac, data = baseline)
+```
+```{r}
+ggplot(baseline_summary, aes(x=condition, y=orig, fill=condition)) +
+  geom_bar(stat="identity", position=position_dodge()) +
+  geom_errorbar(aes(ymin=orig-se_orig, ymax=orig+se_orig), width=.2) +
+  theme_bw()
+```
+```{r}
+ggplot(baseline_summary, aes(x=condition, y=util, fill=condition)) +
+  geom_bar(stat="identity", position=position_dodge()) +
+  geom_errorbar(aes(ymin=util-se_util, ymax=util+se_util), width=.2) +
+  theme_bw()
+```
+
