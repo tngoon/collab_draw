@@ -155,4 +155,8 @@ ggplot(data, aes(x=diff_util, color=condition)) +
   geom_histogram(fill="white", alpha=0.5, position="dodge") +
   theme_bw()
 ```
+```{r}
+#power analysis for follow up study
+pwr.anova.test(k=5,f=.4,sig.level=.05,power=.8)
+```
 
