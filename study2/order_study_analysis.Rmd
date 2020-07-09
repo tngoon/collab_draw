@@ -46,6 +46,31 @@ aggregate <- summarise(data,
 aggregate
 ```
 ```{r}
+#originality histograms
+
+#***t1
+ggplot(data, aes(x=orig_t1,color=condition))+
+  geom_histogram(alpha=0.5, position="dodge", binwidth=.5)+
+  scale_color_manual(values=c("blue","green"))
+
+#***t2
+ggplot(data, aes(x=orig_t2,color=condition))+
+  geom_histogram(alpha=0.5, position="dodge", binwidth=.5)+
+  scale_color_manual(values=c("blue","green"))
+```
+```{r}
+#utility histograms
+ggplot(data, aes(x=util_t1,color=condition))+
+  geom_histogram(alpha=0.5, position="dodge", binwidth=.5)+
+  scale_color_manual(values=c("blue","green"))
+
+ggplot(data, aes(x=util_t2,color=condition))+
+  geom_histogram(alpha=0.5, position="dodge", binwidth=.5)+
+  scale_color_manual(values=c("blue","green"))
+```
+
+
+```{r}
 time <- summarise(data,
                   #first design
                   med_orig_t1 = median(orig_t1),
@@ -146,15 +171,7 @@ t.test(exploit_first$orig_t2,exploit_first$orig_t1, paired=TRUE)
 t.test(explore_first$util_t2,explore_first$util_t1, paired=TRUE)
 t.test(exploit_first$util_t2,exploit_first$util_t1, paired=TRUE)
 ```
-```{r}
-ggplot(data, aes(x=diff_orig, color=condition)) +
-  geom_histogram(fill="white", alpha=0.5, position="dodge") +
-  theme_bw()
 
-ggplot(data, aes(x=diff_util, color=condition)) +
-  geom_histogram(fill="white", alpha=0.5, position="dodge") +
-  theme_bw()
-```
 ```{r}
 #power analysis for follow up study
 pwr.anova.test(k=5,f=.4,sig.level=.05,power=.8)

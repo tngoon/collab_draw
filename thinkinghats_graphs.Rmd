@@ -1,0 +1,166 @@
+---
+title: "Thinking Hats Study Graphs"
+output: html_notebook
+---
+
+```{r}
+#required libraries
+library(ggplot2)
+library(car)
+library(dplyr)
+library(reshape2)
+library(pwr)
+library(irr)
+library(coin)
+```
+```{r}
+baseline <- read.table("study1/baseline_data.csv", sep=",", header=TRUE)
+order <- read.table("study2/order_study_data.csv", sep=",", header=TRUE)
+```
+
+---BASELINE STUDY---
+```{r}
+#summary of data
+baseline <- group_by(baseline, condition)
+baseline_summary <- summarise(baseline,
+                              orig = mean(final_orig),
+                              sd_orig = sd(final_orig),
+                              se_orig = sd_orig/sqrt(length(condition)),
+                              util = mean(final_prac),
+                              sd_util = sd(final_prac),
+                              se_util = sd_util/sqrt(length(condition)),
+                              diff = mean(difference),
+                              sd_diff = sd(difference),
+                              se_diff = sd_diff/sqrt(length(condition)))
+
+baseline_summary
+```
+Comparison of average originality scores for both conditions
+```{r}
+ggplot(baseline_summary, aes(x=condition, y=orig, fill=condition)) +
+  geom_bar(stat="identity", position=position_dodge()) +
+  geom_errorbar(aes(ymin=orig-se_orig, ymax=orig+se_orig), width=.2) +
+  scale_fill_manual(breaks=c("Exploit","Explore"),values= c("darkblue","darkgreen")) +
+  scale_y_continuous(name="Average Rating",limits=c(0,4)) +
+  theme_bw()
+
+#significance test
+independence_test(condition ~ final_orig, data = baseline)
+```
+Originality ratings are significantly different between conditions. Comparison of utility ratings
+```{r}
+ggplot(baseline_summary, aes(x=condition, y=util, fill=condition)) +
+  geom_bar(stat="identity", position=position_dodge()) +
+  geom_errorbar(aes(ymin=util-se_util, ymax=util+se_util), width=.2) +
+  scale_fill_manual(breaks=c("Exploit","Explore"),values= c("darkblue","darkgreen")) +
+  scale_y_continuous(name="Average Rating",limits=c(0,4)) +
+  theme_bw()
+
+#significance test
+independence_test(condition ~ final_prac, data = baseline)
+```
+No significant difference in utility ratings between conditions.
+
+```{r}
+#histogram of originality ratings
+ggplot(baseline, aes(x=final_orig,fill=condition,color=condition))+
+  geom_histogram(alpha=0.5, position="dodge", binwidth=.5) +
+  scale_color_manual(values=c("darkblue","darkgreen")) +
+  scale_fill_manual(values=c("darkblue","darkgreen")) +
+  labs(x="Originality Ratings") +
+  theme_bw()
+
+#histogram of utility ratings
+ggplot(baseline, aes(x=final_prac,fill=condition,color=condition))+
+  geom_histogram(alpha=0.5, position="dodge", binwidth=.5) +
+  scale_color_manual(values=c("darkblue","darkgreen")) +
+  scale_fill_manual(values=c("darkblue","darkgreen")) +
+  labs(x="Utility Ratings") +
+  theme_bw()
+```
+Baseline study results: Explore condition designs received significantly higher originality ratings while there were no significant differences in utility ratings.
+
+---ORDER STUDY---
+```{r}
+order <- group_by(order, condition)
+aggregate <- summarise(order,
+                       n = length(condition),
+                         #mean ratings
+                       med_total_orig = median(sum_orig),   
+                       avg_total_orig = mean(sum_orig),
+                          sd_total_orig = sd(sum_orig),
+                          se_total_orig = sd_total_orig/sqrt(length(condition)),
+                      med_avg_orig = median(sum_orig),   
+                       avg_orig = mean(orig),
+                          sd_avg_orig = sd(orig),
+                          se_avg_orig = sd_avg_orig/sqrt(length(condition)),
+                       med_total_util = median(sum_util),
+                          avg_total_util = mean(sum_util),
+                          sd_total_util = sd(sum_util),
+                          se_total_util = sd_total_util/sqrt(length(condition)),
+                       med_avg_util = median(util),   
+                       avg_util = mean(util),
+                          sd_avg_util = sd(util),
+                          se_avg_util = sd_avg_util/sqrt(length(condition)),
+                      sum = mean(sum_total),
+                      sd_sum = sd(sum_total),
+                      se_sum = sd_sum/sqrt(length(condition)))
+
+aggregate
+
+```
+Comparing originality and utility rating distributions between conditions for first design
+```{r}
+
+ggplot(order, aes(x=orig_t1, fill=condition,color=condition))+
+  geom_histogram(alpha=0.5, position="dodge", binwidth=.5) +
+  scale_color_manual(values=c("darkblue","darkgreen")) +
+  scale_fill_manual(values=c("darkblue","darkgreen")) +
+  labs(x="First Design Originality Ratings") +
+  theme_bw()
+
+#histogram of utility ratings
+ggplot(order, aes(x=util_t1,fill=condition,color=condition))+
+  geom_histogram(alpha=0.5, position="dodge", binwidth=.5) +
+  scale_color_manual(values=c("darkblue","darkgreen")) +
+  scale_fill_manual(values=c("darkblue","darkgreen")) +
+  labs(x="First Design Utility Ratings") +
+  theme_bw()
+```
+Comparing originality and utility rating distributions between conditions for second design
+```{r}
+
+ggplot(order, aes(x=orig_t2,fill=condition,color=condition))+
+  geom_histogram(alpha=0.5, position="dodge", binwidth=.5) +
+  scale_color_manual(values=c("darkblue","darkgreen")) +
+  scale_fill_manual(values=c("darkblue","darkgreen")) +
+  labs(x="Second Design Originality Ratings") +
+  theme_bw()
+
+#histogram of utility ratings
+ggplot(order, aes(x=util_t2,fill=condition,color=condition))+
+  geom_histogram(alpha=0.5, position="dodge", binwidth=.5) +
+  scale_color_manual(values=c("darkblue","darkgreen")) +
+  scale_fill_manual(values=c("darkblue","darkgreen")) +
+  labs(x="Second Design Utility Ratings") +
+  theme_bw()
+```
+Comparing histogram of sum scores for first and second designs
+```{r}
+#first design
+ggplot(order, aes(x=sum_t1,fill=condition,color=condition))+
+  geom_histogram(alpha=0.5, position="dodge", binwidth=.5) +
+  scale_color_manual(values=c("darkblue","darkgreen")) +
+  scale_fill_manual(values=c("darkblue","darkgreen")) +
+  labs(x="First Design Sum Ratings") +
+  theme_bw()
+
+#second design
+ggplot(order, aes(x=sum_t2,fill=condition,color=condition))+
+  geom_histogram(alpha=0.5, position="dodge", binwidth=.5) +
+  scale_color_manual(values=c("darkblue","darkgreen")) +
+  scale_fill_manual(values=c("darkblue","darkgreen")) +
+  labs(x="Second Design Sum Ratings") +
+  theme_bw()
+```
+
