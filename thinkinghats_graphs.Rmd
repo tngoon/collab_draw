@@ -117,6 +117,8 @@ ggplot(order, aes(x=orig_t1, fill=condition,color=condition))+
   scale_color_manual(values=c("darkblue","darkgreen")) +
   scale_fill_manual(values=c("darkblue","darkgreen")) +
   labs(x="First Design Originality Ratings") +
+  scale_y_continuous(breaks=seq(0,10,1)) +
+  scale_x_continuous(breaks=seq(1,4,.5)) +
   theme_bw()
 
 #histogram of utility ratings
@@ -125,6 +127,8 @@ ggplot(order, aes(x=util_t1,fill=condition,color=condition))+
   scale_color_manual(values=c("darkblue","darkgreen")) +
   scale_fill_manual(values=c("darkblue","darkgreen")) +
   labs(x="First Design Utility Ratings") +
+  scale_y_continuous(breaks=seq(0,10,1)) +
+  scale_x_continuous(breaks=seq(1,4,.5)) +
   theme_bw()
 ```
 Comparing originality and utility rating distributions between conditions for second design
@@ -135,6 +139,8 @@ ggplot(order, aes(x=orig_t2,fill=condition,color=condition))+
   scale_color_manual(values=c("darkblue","darkgreen")) +
   scale_fill_manual(values=c("darkblue","darkgreen")) +
   labs(x="Second Design Originality Ratings") +
+  scale_y_continuous(breaks=seq(0,10,1)) +
+  scale_x_continuous(breaks=seq(1,4,.5)) +
   theme_bw()
 
 #histogram of utility ratings
@@ -143,6 +149,8 @@ ggplot(order, aes(x=util_t2,fill=condition,color=condition))+
   scale_color_manual(values=c("darkblue","darkgreen")) +
   scale_fill_manual(values=c("darkblue","darkgreen")) +
   labs(x="Second Design Utility Ratings") +
+  scale_y_continuous(breaks=seq(0,10,1)) +
+  scale_x_continuous(breaks=seq(1,4,.5)) +
   theme_bw()
 ```
 Comparing histogram of sum scores for first and second designs
@@ -153,6 +161,8 @@ ggplot(order, aes(x=sum_t1,fill=condition,color=condition))+
   scale_color_manual(values=c("darkblue","darkgreen")) +
   scale_fill_manual(values=c("darkblue","darkgreen")) +
   labs(x="First Design Sum Ratings") +
+  scale_y_continuous(breaks=seq(0,10,1)) +
+  scale_x_continuous(breaks=seq(2,8,.5)) +
   theme_bw()
 
 #second design
@@ -161,6 +171,66 @@ ggplot(order, aes(x=sum_t2,fill=condition,color=condition))+
   scale_color_manual(values=c("darkblue","darkgreen")) +
   scale_fill_manual(values=c("darkblue","darkgreen")) +
   labs(x="Second Design Sum Ratings") +
+  scale_y_continuous(breaks=seq(0,10,1)) +
+  scale_x_continuous(breaks=seq(2,8,.5)) +
   theme_bw()
+```
+```{r}
+counts_t1 <- summarise(order,
+                    high_orig_t1 = sum(length(which(orig_t1==4)),length(which(orig_t1==3.5))),
+                    med_orig_t1 = sum(length(which(orig_t1==3)),length(which(orig_t1==2.5)),length(which(orig_t1==2))),
+                    low_orig_t1= sum(length(which(orig_t1==1.5)),length(which(orig_t1==1))),
+                    high_util_t1 = sum(length(which(util_t1==4)),length(which(util_t1==3.5))),
+                    med_util_t1 = sum(length(which(util_t1==3)),length(which(util_t1==2)),length(which(util_t1==2.5))),
+                    low_util_t1= sum(length(which(util_t1==1.5)),length(which(util_t1==1))))
+
+counts_t1
+```
+```{r}
+counts_t2 <- summarise(order,
+                    high_orig_t2 = sum(length(which(orig_t2==4)),length(which(orig_t2==3.5))),
+                    med_orig_t2 = sum(length(which(orig_t2==3)),length(which(orig_t2==2.5)),length(which(orig_t2==2))),
+                    low_orig_t2= sum(length(which(orig_t2==1.5)),length(which(orig_t2==1))),
+                    high_util_t2 = sum(length(which(util_t2==4)),length(which(util_t2==3.5))),
+                    med_util_1 = sum(length(which(util_t2==3)),length(which(util_t2==2)),length(which(util_t2==2.5))),
+                    low_util_t2= sum(length(which(util_t2==1.5)),length(which(util_t2==1))))
+
+counts_t2
+```
+```{r}
+counts_sum_t1 <- summarise(order,
+                    high_sum = sum(length(which(sum_t1>=6))),
+                    med_sum = sum(length(which(sum_t1<=5.5)),length(which(sum_t1>=4))),
+                    low_sum = sum(length(which(sum_t1<=3.5))))
+
+counts_sum_t1
+```
+```{r}
+t1_orig <- melt(counts_t1[,c('condition','high_orig_t1','med_orig_t1','low_orig_t1')], id.vars=1)
+t1_orig
+
+ggplot(t1_orig, aes(variable, value)) +
+  geom_bar(aes(fill=condition), stat="identity", position="dodge") +
+  theme_bw() +
+  theme(text = element_text(size=16)) + 
+  theme(legend.title = element_blank()) +
+  scale_color_manual(values=c("darkblue","darkgreen")) +
+  scale_y_continuous(name="Counts") +
+  scale_fill_grey(start=.6, end=.2)
+```
+
+
+```{r}
+t1_util <- melt(counts_t1[,c('condition','high_util_t1','med_util_t1','low_util_t1')], id.vars=1)
+t1_util
+
+ggplot(t1_util, aes(variable, value)) +
+  geom_bar(aes(fill=condition), stat="identity", position="dodge") +
+  theme_bw() +
+  theme(text = element_text(size=16)) + 
+  theme(legend.title = element_blank()) +
+  scale_color_manual(values=c("darkblue","darkgreen")) +
+  scale_y_continuous(name="Counts") +
+  scale_fill_grey(start=.6, end=.2)
 ```
 
