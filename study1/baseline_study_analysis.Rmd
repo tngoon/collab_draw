@@ -7,10 +7,11 @@ output: html_notebook
 ```{r}
 #required libraries
 library(ggplot2)
-library(car)
+#library(car)
 library(dplyr)
-library(reshape2)
-library(pwr)
+#library(reshape2)
+#library(pwr)
+install.packages("irr")
 library(irr)
 library(coin)
 ```
@@ -56,27 +57,58 @@ difference
 ```
 
 ```{r}
-#randomization tests
-independence_test(condition ~ final_orig, data = baseline)
-independence_test(condition ~ final_prac, data = baseline)
-independence_test(condition ~ difference, data = baseline)
+orig <- lm(final_orig ~ condition + (1 | pid), data=baseline)
+summary(orig)
+
+util <- lm(final_prac ~ condition + (1 | pid), data=baseline)
+summary(util)
+```
+
+```{r}
+#boxplot
+ggplot(baseline, aes(x=condition, y=final_orig, fill=condition)) +
+  geom_boxplot() +
+  scale_fill_manual(values=c("dodgerblue2","green4")) +
+  scale_y_continuous(name="Average Rating") +
+  theme_bw()+
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(), 
+        panel.border = element_blank(),
+        axis.line = element_line(colour = "black"),
+        text = element_text(size=20))
 ```
 ```{r}
-ggplot(baseline_summary, aes(x=condition, y=orig, fill=condition)) +
-  geom_bar(stat="identity", position=position_dodge()) +
-  geom_errorbar(aes(ymin=orig-se_orig, ymax=orig+se_orig), width=.2) +
-  theme_bw()
+ggplot(baseline, aes(x=condition, y=final_prac, fill=condition)) +
+  geom_boxplot() +
+  scale_fill_manual(values=c("dodgerblue2","green4")) +
+  scale_y_continuous(name="Average Rating") +
+  theme_bw()+
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(), 
+        panel.border = element_blank(),
+        axis.line = element_line(colour = "black"),
+        text = element_text(size=20))
 ```
-```{r}
-ggplot(baseline_summary, aes(x=condition, y=util, fill=condition)) +
-  geom_bar(stat="identity", position=position_dodge()) +
-  geom_errorbar(aes(ymin=util-se_util, ymax=util+se_util), width=.2) +
-  theme_bw()
-```
+
 ```{r}
 ggplot(baseline_summary, aes(x=condition, y=diff, fill=condition)) +
   geom_bar(stat="identity", position=position_dodge()) +
+  #geom_boxplot()+
   geom_errorbar(aes(ymin=diff-se_diff, ymax=diff+se_diff), width=.2) +
-  theme_bw()
+  scale_fill_manual(values=c("dodgerblue2","green4")) +
+  theme_bw()+
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(), 
+        panel.border = element_blank(),
+        axis.line = element_line(colour = "black"),
+        text = element_text(size=20))
+```
+
+```{r}
+diff <- lm(difference ~ condition + (1|pid), data=baseline)
+summary(diff)
 ```
 

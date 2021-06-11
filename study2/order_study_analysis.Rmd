@@ -6,12 +6,11 @@ output: html_notebook
 ```{r}
 #required libraries
 library(ggplot2)
-library(car)
 library(dplyr)
 library(reshape2)
-library(pwr)
-library(irr)
+install.packages("coin")
 library(coin)
+library(irr)
 ```
 ```{r}
 data <- read.table("order_study_data.csv", sep=",", header=TRUE)
@@ -72,6 +71,13 @@ ggplot(data, aes(x=util_t2,color=condition))+
 
 ```{r}
 time <- summarise(data,
+                  #diff
+                  avg_orig_diff = mean(diff_orig),
+                  sd_orig_diff = sd(diff_orig),
+                  se_orig_diff = sd(diff_orig)/sqrt(length(condition)),
+                  avg_util_diff = mean(diff_util),
+                  sd_util_diff = sd(diff_util),
+                  se_util_diff = sd(diff_util)/sqrt(length(condition)),
                   #first design
                   med_orig_t1 = median(orig_t1),
                   avg_orig_t1 = mean(orig_t1),
@@ -95,7 +101,8 @@ time <- summarise(data,
                   se_util_t2 = sd_util_t2/sqrt(length(condition)),
                   mean_sum_t2 = mean(sum_t2),
                   sd_sum_t2 = sd(sum_t2),
-                  se_sum_t2 = sd_sum_t2/sqrt(length(condition)))
+                  se_sum_t2 = sd_sum_t2/sqrt(length(condition))
+                  )
 
 time
 ```
@@ -108,58 +115,12 @@ kappa2(irr, "equal")
 ```
 
 ```{r}
-#comparing the sum totals for originality and utility across t1 and t2
-wilcox.test(data$sum_orig~data$condition)
-wilcox.test(data$sum_util~data$condition)
-```
-
-```{r}
-#randomization test comparing sum originality and sum utility across t1 and t2
-independence_test(condition ~ sum_orig, data = data)
-independence_test(condition ~ sum_util, data = data)
-```
-
-```{r}
-#comparing t2 orig and util
-wilcox.test(data$orig_t2~data$condition)
-wilcox.test(data$util_t2~data$condition)
-```
-```{r}
-#randomization test for t2 orig and util
-independence_test(condition ~ orig_t2, data = data)
-independence_test(condition ~ util_t2, data = data)
-```
-
-```{r}
-#comparing t1 orig and util
-wilcox.test(data$orig_t1~data$condition)
-wilcox.test(data$util_t1~data$condition)
-```
-```{r}
-#randomization test for t2 orig and util
-independence_test(condition ~ orig_t1, data = data)
-independence_test(condition ~ util_t1, data = data)
-```
-```{r}
-wilcox.test(data$sum_t1~data$condition)
-wilcox.test(data$sum_t2~data$condition)
-wilcox.test(data$sum_total~data$condition)
-```
-
-```{r}
-#randomization test for sum scores
-independence_test(condition ~ sum_t1, data=data)
-independence_test(condition ~ sum_t2, data=data)
-independence_test(condition ~ sum_total, data=data)
-```
-
-```{r}
 #filter data into conditions
 explore_first <- data %>%
-  filter(condition=="green")
+  filter(condition=="Explore")
 
 exploit_first <- data %>%
-  filter(condition=="blue")
+  filter(condition=="Exploit")
 ```
 ```{r}
 #repeated measures paired t-tests for originality between designs
@@ -170,6 +131,100 @@ t.test(exploit_first$orig_t2,exploit_first$orig_t1, paired=TRUE)
 #repeated measures paired t-tests for utility between designs
 t.test(explore_first$util_t2,explore_first$util_t1, paired=TRUE)
 t.test(exploit_first$util_t2,exploit_first$util_t1, paired=TRUE)
+```
+
+```{r}
+explore_orig <- lm(orig_t2 - orig_t1 ~ pid, data=explore_first)
+summary(explore_orig)
+
+exploit_orig <- lm(orig_t2 - orig_t1 ~ pid, data=exploit_first)
+summary(exploit_orig)
+```
+
+```{r}
+orig_diff <- lm(diff_orig ~ condition + (1 | pid), data=data)
+summary(orig_diff)
+
+util_diff <- lm(diff_util ~ condition + (1 | pid), data=data)
+summary(util_diff)
+```
+```{r}
+#boxplot
+ggplot(data, aes(x=condition, y=orig_t1, fill=condition)) +
+  #stat_boxplot(geom='errorbar',width=.5)+
+  geom_boxplot(width=.3) +
+  theme_bw() +
+  scale_fill_manual(values=c("lightskyblue2","palegreen3")) +
+  scale_y_continuous(name="Average Rating") +
+  theme_bw()+
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(), 
+        panel.border = element_blank(),
+        axis.line = element_line(colour = "black"),
+        text = element_text(size=20))
+```
+```{r}
+ggplot(data, aes(x=condition, y=orig_t2, fill=condition)) +
+ # stat_boxplot(geom='errorbar',width=.5)+
+  geom_boxplot(width=.3) +
+  theme_bw() +
+  scale_fill_manual(values=c("dodgerblue2","green4")) +
+  scale_y_continuous(name="Average Rating") +
+  theme_bw()+
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(), 
+        panel.border = element_blank(),
+        axis.line = element_line(colour = "black"),
+        text = element_text(size=20))
+```
+
+```{r}
+ggplot(data, aes(x=condition, y=util_t1, fill=condition)) +
+  geom_boxplot(width=.3) +
+  theme_bw() +
+  scale_fill_manual(values=c("lightskyblue2","palegreen3")) +
+  scale_y_continuous(name="Average Rating") +
+  theme_bw()+
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(), 
+        panel.border = element_blank(),
+        axis.line = element_line(colour = "black"),
+        text = element_text(size=20))
+```
+```{r}
+ggplot(data, aes(x=condition, y=util_t2, fill=condition)) +
+  geom_boxplot(width=.3) +
+  theme_bw() +
+  scale_fill_manual(values=c("dodgerblue2","green4")) +
+  scale_y_continuous(name="Average Rating") +
+  theme_bw()+
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(), 
+        panel.border = element_blank(),
+        axis.line = element_line(colour = "black"),
+        text = element_text(size=20))
+```
+
+```{r}
+orig_t1 <- lm(orig_t1 ~ condition + (1 | pid), data=data)
+summary(orig_t1)
+
+orig_t2 <- lm(orig_t2 ~ condition + (1 | pid), data=data)
+summary(orig_t2)
+```
+
+
+```{r}
+util_t1 <- lm(util_t1 ~ condition + (1 | pid), data=data)
+summary(util_t1)
+
+util_t2 <- lm(util_t2 ~ condition + (1 | pid), data=data)
+summary(util_t2)
+```
 ```
 
 ```{r}
